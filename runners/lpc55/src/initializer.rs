@@ -82,7 +82,7 @@ fn get_serial_number() -> &'static str {
     }
 }
 
-// SoloKeys stores a product string in the first 64 bytes of CMPA.
+// ATLKey stores a product string in the first 64 bytes of CMPA.
 fn get_product_string(pfr: &mut Pfr<hal::typestates::init_state::Enabled>) -> &'static str {
     let data = pfr.cmpa_customer_data();
 
@@ -102,7 +102,7 @@ fn get_product_string(pfr: &mut Pfr<hal::typestates::init_state::Enabled>) -> &'
     // Use a default string
     // NB: If this were to be re-used as card issuer's data in CCID ATR,
     // it would need to be limited or truncated to 13 bytes.
-    "Solo 2 (custom)"
+    "ATLKey"
 }
 
 #[cfg(feature = "write-undefined-flash")]
@@ -337,7 +337,7 @@ impl Initializer {
                 iocon,
             );
 
-            #[cfg(feature = "board-solo2")]
+            #[cfg(feature = "board-atlkey")]
             let rgb = board::RgbLed::new(
                 Pwm::new(_ctimer3.enabled(syscon, clocks.support_1mhz_fro_token().unwrap())),
                 iocon,
@@ -356,7 +356,7 @@ impl Initializer {
                 iocon,
             );
 
-            #[cfg(feature = "board-solo2")]
+            #[cfg(feature = "board-atlkey")]
             let three_buttons = {
                 // TODO this should get saved somewhere to be released later.
                 let mut dma = hal::Dma::from(_dma).enabled(syscon);
@@ -512,8 +512,7 @@ impl Initializer {
             // our USB classes (must be allocated in order that they're passed in `.poll(...)` later!)
             //
             // NB: Card issuer's data can be at most 13 bytes (otherwise the constructor panics).
-            // So for instance "Hacker Solo 2" would work, but "Solo 2 (custom)" would not.
-            let ccid = usbd_ccid::Ccid::new(usb_bus, contact_requester, Some(b"Solo 2"));
+            let ccid = usbd_ccid::Ccid::new(usb_bus, contact_requester, Some(b"ATLKey"));
             let current_time = basic_stage.perf_timer.elapsed().0/1000;
             let mut ctaphid = usbd_ctaphid::CtapHid::new(usb_bus, ctaphid_requester, current_time)
                 .implements_ctap1()
@@ -748,12 +747,12 @@ impl Initializer {
 
         let three_buttons = basic_stage.three_buttons.take();
 
-        let mut solobee_interface = board::trussed::UserInterface::new(rtc, three_buttons, rgb);
-        solobee_interface.set_status(trussed::platform::ui::Status::Idle);
+        let mut atlkey_interface = board::trussed::UserInterface::new(rtc, three_buttons, rgb);
+        atlkey_interface.set_status(trussed::platform::ui::Status::Idle);
 
         let rng = flash_stage.rng.take().unwrap();
         let store = filesystem_stage.store;
-        let board = types::Board::new(rng, store, solobee_interface);
+        let board = types::Board::new(rng, store, atlkey_interface);
         let trussed = trussed::service::Service::new(board);
 
         trussed

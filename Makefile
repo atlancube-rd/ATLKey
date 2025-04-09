@@ -3,8 +3,14 @@ RUNNER := runners/lpc55
 build-dev:
 	make -C $(RUNNER) build-dev
 
+build-release:
+	make -C $(RUNNER) build-release
+
 bacon:
 	make -C $(RUNNER) bacon
+
+run-release:
+	make -C $(RUNNER) run-release
 
 run-dev:
 	make -C $(RUNNER) run-dev

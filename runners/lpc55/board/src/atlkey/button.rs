@@ -35,14 +35,14 @@ type SampleTimer = ctimer::Ctimer2<init_state::Enabled>;
 // type ButtonBot = Pin<ButtonBotPin, Analog<direction::Input>>;
 // type ButtonMid = Pin<ButtonMidPin, Analog<direction::Input>>;
 
-pub type ThreeButtons = SoloThreeTouchButtons<ButtonTopPin, ButtonBotPin, ButtonMidPin>;
+pub type ThreeButtons = ATLThreeTouchButtons<ButtonTopPin, ButtonBotPin, ButtonMidPin>;
 
-pub struct SoloThreeTouchButtons<P1,P2,P3>
+pub struct ATLThreeTouchButtons<P1,P2,P3>
 where P1: PinId, P2: PinId, P3: PinId{
     touch_sensor: TouchSensor<P1,P2,P3>
 }
 
-impl SoloThreeTouchButtons<ButtonTopPin, ButtonBotPin, ButtonMidPin>
+impl ATLThreeTouchButtons<ButtonTopPin, ButtonBotPin, ButtonMidPin>
 // where P1: PinId, P2: PinId, P3: PinId
 {
     pub fn new (
@@ -57,7 +57,7 @@ impl SoloThreeTouchButtons<ButtonTopPin, ButtonBotPin, ButtonMidPin>
         token: ClocksSupportTouchToken,
         gpio: &mut hal::Gpio<hal::Enabled>,
         iocon: &mut hal::Iocon<hal::Enabled>,
-    ) -> SoloThreeTouchButtons<ButtonTopPin, ButtonBotPin, ButtonMidPin> {
+    ) -> ATLThreeTouchButtons<ButtonTopPin, ButtonBotPin, ButtonMidPin> {
         let top = ButtonTopPin::take().unwrap().into_analog_input(iocon, gpio);
         let mid = ButtonMidPin::take().unwrap().into_analog_input(iocon, gpio);
         let bot = ButtonBotPin::take().unwrap().into_analog_input(iocon, gpio);
@@ -124,7 +124,7 @@ impl SoloThreeTouchButtons<ButtonTopPin, ButtonBotPin, ButtonMidPin>
 
 }
 
-impl buttons::Press for SoloThreeTouchButtons<ButtonTopPin, ButtonBotPin, ButtonMidPin>
+impl buttons::Press for ATLThreeTouchButtons<ButtonTopPin, ButtonBotPin, ButtonMidPin>
 {
     fn is_pressed(&self, button: buttons::Button) -> bool {
         self.button_get_state(button, Compare::BelowThreshold)
@@ -135,7 +135,7 @@ impl buttons::Press for SoloThreeTouchButtons<ButtonTopPin, ButtonBotPin, Button
     }
 }
 
-impl buttons::Edge for SoloThreeTouchButtons<ButtonTopPin, ButtonBotPin, ButtonMidPin>
+impl buttons::Edge for ATLThreeTouchButtons<ButtonTopPin, ButtonBotPin, ButtonMidPin>
 {
     fn wait_for_new_press(&mut self, button: Button) -> nb::Result<(), Infallible> {
         let result = self.button_has_edge(button, Edge::Falling);

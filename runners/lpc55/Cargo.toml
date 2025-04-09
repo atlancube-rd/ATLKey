@@ -56,6 +56,7 @@ littlefs2 = { version = "0.3.2", features = ["c-stubs"] }
 [features]
 # ndef-app is an annoyance on some mobile platforms
 default = ["admin-app", "fido-authenticator", "ndef-app", "oath-authenticator", "trussed/clients-4"]
+default-release = ["admin-app", "no-encrypted-storage", "fido-authenticator", "log-rtt", "ndef-app", "oath-authenticator", "trussed/clients-4"]
 
 # develop = ["no-encrypted-storage", "no-buttons", "no-reset-time-window"]
 # develop = ["no-encrypted-storage", "no-reset-time-window"]
@@ -83,7 +84,7 @@ format-filesystem = []
 # TODO: get rid of these (depends on moving "initialize_basic" &friends into `board`
 board-lpcxpresso55 = ["board/lpcxpresso55"]
 board-okdoe1 = ["board/okdoe1", "usbfs-peripheral"]
-board-solo2 = ["board/solo2"]
+board-atlkey = ["board/atlkey"]
 
 log-rtt = ["rtt-target"]
 log-semihosting = ["cortex-m-semihosting"]

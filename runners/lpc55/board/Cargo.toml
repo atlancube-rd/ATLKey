@@ -1,7 +1,7 @@
 [package]
 name = "board"
 version = "0.1.0-unreleased"
-authors = ["Conor Patrick <conor@solokeys.com>"]
+authors = ["Conor Patrick <conor@solokeys.com>", "Hank Lee <kehan.lee@atlancube.com>", "Jisheng Chiu<jisheng.chiu@atlancube.com>"]
 edition = "2021"
 
 [dependencies]
@@ -17,7 +17,7 @@ trussed = "0.1"
 [features]
 lpcxpresso55 = []
 okdoe1 = ["lpcxpresso55"]
-solo2 = []
+atlkey = []
 
 no-buttons = []
 no-clock-controller = []

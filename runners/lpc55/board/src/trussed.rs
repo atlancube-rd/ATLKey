@@ -101,7 +101,7 @@ RGB: RgbLed,
                 }
             }
             None => {
-                // With configured with no buttons, that means Solo is operating
+                // With configured with no buttons, that means ATLKey is operating
                 // in passive NFC mode, which means user tapped to indicate presence.
                 consent::Level::Normal
             }

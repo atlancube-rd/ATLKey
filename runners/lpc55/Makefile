@@ -14,8 +14,8 @@ build-pro:
 	cargo objcopy --release $(PROVISIONER) -- -O binary provisioner.bin
 
 build-release:
-	cargo build --release --features board-solo2
-	cargo objcopy --release --features board-solo2 -- -O binary app-solo2.bin
+	cargo build --release --features board-atlkey,default-release
+	cargo objcopy --release --features board-atlkey,default-release -- -O binary app-ATLKey.bin
 
 .PHONY: today-as-minor-version
 today-in-days:
@@ -26,6 +26,9 @@ run-dev:
 
 run-pro:
 	cargo run --release $(PROVISIONER)
+
+run-release:
+	cargo run --release --features board-atlkey,default-release
 
 bacon:
 	bacon

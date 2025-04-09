@@ -6,7 +6,7 @@ pub mod shared;
 pub mod traits;
 
 // board support package
-#[cfg(not(any(feature = "lpcxpresso55", feature = "solo2")))]
+#[cfg(not(any(feature = "lpcxpresso55", feature = "atlkey")))]
 compile_error!("Please select one of the board features.");
 
 #[macro_use]
@@ -18,10 +18,10 @@ pub mod lpcxpresso55;
 #[cfg(feature = "lpcxpresso55")]
 pub use lpcxpresso55 as specifics;
 
-#[cfg(feature = "solo2")]
-pub mod solo2;
-#[cfg(feature = "solo2")]
-pub use solo2 as specifics;
+#[cfg(feature = "atlkey")]
+pub mod atlkey;
+#[cfg(feature = "atlkey")]
+pub use atlkey as specifics;
 
 pub use shared::{
     Monotonic,
