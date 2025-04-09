@@ -85,7 +85,7 @@ pub fn init_board(
 
     let config = initializer::Config {
         secure_firmware_version: Some(build_constants::CARGO_PKG_VERSION),
-        nfc_enabled: true,
+        nfc_enabled: false,
         require_prince: require_prince,
         boot_to_bootrom: true,
         usb_config: Some(initializer::UsbConfig {
