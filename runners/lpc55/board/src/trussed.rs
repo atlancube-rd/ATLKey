@@ -67,7 +67,7 @@ RGB: RgbLed,
 // color codes Conor picked
 const BLACK: Intensities = Intensities { red: 0, green: 0, blue: 0 };
 const RED: Intensities = Intensities { red: u8::MAX, green: 0, blue: 0 };
-const GREEN: Intensities = Intensities { red: 0, green: 15, blue: 0x02 };
+const GREEN: Intensities = Intensities { red: 0, green: 55, blue: 0 };
 const BLUE: Intensities = Intensities { red: 0, green: 0, blue: 55 };
 const TEAL: Intensities = Intensities { red: 0, green: 55, blue: 20 };
 #[allow(dead_code)]
@@ -137,8 +137,8 @@ RGB: RgbLed,
         if let Some(rgb) = self.rgb.as_mut() {
 
             let waiting_for_user = self.status == ui::Status::WaitingForUserPresence;
-            let processing = self.status == ui::Status::Processing;
-            let winking = uptime < self.wink_until.as_millis() as u32;
+            // let processing = self.status == ui::Status::Processing;
+            // let winking = uptime < self.wink_until.as_millis() as u32;
             let any_button = self.buttons.as_mut()
                 .map(|buttons| buttons.state())
                 .map(|state| state.a || state.b || state.middle)
@@ -148,33 +148,35 @@ RGB: RgbLed,
 
                 // breathe fast, in blue
 
-                let amplitude = calculate_amplitude(uptime, 2, 4, 75);
-                Intensities { red: 0, green: 0, blue: amplitude }
+                let _amplitude = calculate_amplitude(uptime, 2, 4, 75);
+                // Intensities { red: 0, green: 0, blue: amplitude }
+                // Intensities { red: amplitude, green: 0, blue: amplitude }
+                let on = (((F32(uptime as f32) / 100.0).round().0 as u32) % 2) != 0;
+                if on  { BLUE } else { BLACK }
 
-            } else if processing {
-                let on = (((F32(uptime as f32) / 250.0).round().0 as u32) % 2) != 0;
-                if on { GREEN } else { BLACK }
-            } else if winking {
+            // } else if processing {
+            //     let _on = (((F32(uptime as f32) / 250.0).round().0 as u32) % 2) != 0;
+            //     if on { GREEN } else { BLACK }
+            // } else if !processing & winking {
 
-                // blink rapidly
+            //     // blink rapidly
 
-                let on = (((F32(uptime as f32) / 250.0).round().0 as u32) % 2) != 0;
-                if on { BLUE } else { BLACK }
-                // if on { WHITE } else { BLACK }
+            //     let on = (((F32(uptime as f32) / 250.0).round().0 as u32) % 2) != 0;
+            //     if on { BLUE } else { BLACK }
+            //     // if on { WHITE } else { BLACK }
 
             } else {
 
                 // regular behaviour: breathe slowly
 
-                let amplitude = calculate_amplitude(uptime, 10, 4, 64);
-
                 if !any_button {
                     // Use green if no button is pressed.
-                    Intensities { red: 0, green: amplitude, blue: 0 }
-                    // Intensities { red: amplitude, green: 0, blue: 0 }
+                    BLUE
+                    // Intensities { red: 0, green: 0, blue: 64 }
                 } else {
                     // Use blue if button is pressed.
-                    Intensities { red: 0, green: 0, blue: amplitude }
+                    GREEN
+                    // Intensities { red: 0, green: 64, blue: 0 }
                 }
             };
 
