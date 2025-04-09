@@ -184,9 +184,9 @@ checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 
 [[package]]
 name = "cbor-smol"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d516e3e353d5fc5ee156028f43224033430fd08ef05f8d5dba18a57a4ee5df49"
+checksum = "1f2529cc8240fcc91e8642754ce85e5360c2ee7f4435a76aa150e4ed746a5da4"
 dependencies = [
  "delog",
  "heapless 0.7.16",
@@ -555,8 +555,7 @@ dependencies = [
 [[package]]
 name = "fido-authenticator"
 version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bda469ecf5b58ba898e1a6e68f99529b568e24490f45ced8222240d10d7c6508"
+source = "git+https://github.com/atlancube-rd/fido-authenticator#2e3975f1ce68e4385e1b8a65a7bbf6ca57bf0f42"
 dependencies = [
  "apdu-dispatch",
  "ctap-types",
@@ -1283,7 +1282,7 @@ dependencies = [
  "delog",
  "fido-authenticator",
  "fm11nc08",
- "heapless 0.6.1",
+ "heapless 0.7.16",
  "interchange",
  "littlefs2",
  "lpc55-rtic",

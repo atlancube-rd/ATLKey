@@ -167,6 +167,7 @@ impl TrussedApp for FidoApp {
                 // max_creds_in_list: ctap_types::sizes::MAX_CREDENTIAL_COUNT_IN_LIST,
                 // max_cred_id_length: ctap_types::sizes::MAX_CREDENTIAL_ID_LENGTH,
                 skip_up_timeout: None,
+                max_resident_credential_count: Some(100),
             },
         );
 
