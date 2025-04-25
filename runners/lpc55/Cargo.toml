@@ -29,7 +29,7 @@ apdu-dispatch = "0.1.1"
 ctaphid-dispatch = "0.1.1"
 # ctap-types = { path = "../../ctap-types" }
 # fido-authenticator = { path = "../../fido-authenticator", features = ["dispatch"], optional = true }
-ctap-types = "0.1"
+ctap-types = { git = "https://github.com/atlancube-rd/ctap-types", branch = "0.1" }
 fido-authenticator = { git = "https://github.com/atlancube-rd/fido-authenticator", features = ["dispatch"], optional = true }
 oath-authenticator = { version = "0.1", features = ["apdu-dispatch"], optional = true }
 piv-authenticator = { git = "https://github.com/solokeys/piv-authenticator", features = ["apdu-dispatch"], optional = true }
