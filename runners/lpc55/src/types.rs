@@ -6,6 +6,7 @@ use littlefs2::{const_ram_storage, consts};
 use trussed::types::{LfsResult, LfsStorage};
 use trussed::{platform, store};
 use hal::peripherals::ctimer;
+use trussed::interrupt::InterruptFlag;
 
 #[cfg(feature = "no-encrypted-storage")]
 use hal::littlefs2_filesystem;
@@ -81,7 +82,7 @@ pub type Iso14443 = nfc_device::Iso14443<board::nfc::NfcChip>;
 pub type ExternalInterrupt = hal::Pint<hal::typestates::init_state::Enabled>;
 
 pub type ApduDispatch = apdu_dispatch::dispatch::ApduDispatch;
-pub type CtaphidDispatch = ctaphid_dispatch::dispatch::Dispatch;
+pub type CtaphidDispatch = ctaphid_dispatch::dispatch::Dispatch<'static, 'static>;
 
 #[cfg(feature = "admin-app")]
 pub type AdminApp = admin_app::App<TrussedClient, board::Reboot>;
@@ -117,8 +118,12 @@ pub trait TrussedApp: Sized {
 
     fn with(trussed: &mut trussed::Service<crate::Board>, non_portable: Self::NonPortable) -> Self {
         let client_id = core::str::from_utf8(Self::CLIENT_ID).unwrap();
-        let client = trussed.try_new_client(client_id, Syscall::default()).unwrap();
+        let client = trussed.try_new_client(client_id, Syscall::default(), Self::interrupt()).unwrap();
         Self::with_client(client, non_portable)
+    }
+
+    fn interrupt() -> Option<&'static InterruptFlag> {
+        None
     }
 }
 
@@ -129,6 +134,11 @@ impl TrussedApp for OathApp {
     type NonPortable = ();
     fn with_client(trussed: TrussedClient, _: ()) -> Self {
         Self::new(trussed)
+    }
+    
+    fn interrupt() -> Option<&'static InterruptFlag> {
+        static INTERRUPT: InterruptFlag = InterruptFlag::new();
+        Some(&INTERRUPT)
     }
 }
 
@@ -150,6 +160,11 @@ impl TrussedApp for AdminApp {
     type NonPortable = ();
     fn with_client(trussed: TrussedClient, _: ()) -> Self {
         Self::new(trussed, hal::uuid(), build_constants::CARGO_PKG_VERSION)
+    }
+
+    fn interrupt() -> Option<&'static InterruptFlag> {
+        static INTERRUPT: InterruptFlag = InterruptFlag::new();
+        Some(&INTERRUPT)
     }
 }
 
@@ -173,6 +188,11 @@ impl TrussedApp for FidoApp {
 
         // Self::new(authnr)
         authnr
+    }
+
+    fn interrupt() -> Option<&'static InterruptFlag> {
+        static INTERRUPT: InterruptFlag = InterruptFlag::new();
+        Some(&INTERRUPT)
     }
 }
 
@@ -269,7 +289,7 @@ impl Apps {
     #[inline(never)]
     pub fn ctaphid_dispatch<F, T>(&mut self, f: F) -> T
     where
-        F: FnOnce(&mut [&mut dyn CtaphidApp ]) -> T
+        F: FnOnce(&mut [&mut dyn CtaphidApp<'static>]) -> T
     {
         f(&mut [
             #[cfg(feature = "fido-authenticator")]

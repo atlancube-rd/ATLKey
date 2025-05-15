@@ -149,21 +149,8 @@ RGB: RgbLed,
                 // breathe fast, in blue
 
                 let _amplitude = calculate_amplitude(uptime, 2, 4, 75);
-                // Intensities { red: 0, green: 0, blue: amplitude }
-                // Intensities { red: amplitude, green: 0, blue: amplitude }
                 let on = (((F32(uptime as f32) / 100.0).round().0 as u32) % 2) != 0;
                 if on  { BLUE } else { BLACK }
-
-            // } else if processing {
-            //     let _on = (((F32(uptime as f32) / 250.0).round().0 as u32) % 2) != 0;
-            //     if on { GREEN } else { BLACK }
-            // } else if !processing & winking {
-
-            //     // blink rapidly
-
-            //     let on = (((F32(uptime as f32) / 250.0).round().0 as u32) % 2) != 0;
-            //     if on { BLUE } else { BLACK }
-            //     // if on { WHITE } else { BLACK }
 
             } else {
 
@@ -172,11 +159,9 @@ RGB: RgbLed,
                 if !any_button {
                     // Use green if no button is pressed.
                     BLUE
-                    // Intensities { red: 0, green: 0, blue: 64 }
                 } else {
                     // Use blue if button is pressed.
                     GREEN
-                    // Intensities { red: 0, green: 64, blue: 0 }
                 }
             };
 

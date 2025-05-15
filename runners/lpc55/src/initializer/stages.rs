@@ -48,20 +48,22 @@ pub struct Basic {
 pub struct Nfc {
     pub iso14443: Option<nfc_device::Iso14443<board::nfc::NfcChip>>,
 
-    pub contactless_responder: Option<interchange::Responder<apdu_dispatch::interchanges::Contactless>>,
+    // pub contactless_responder: Option<interchange::Responder<apdu_dispatch::interchanges::Contactless>>,
 }
 
 /// Initialized USB device + USB classes, Dynamic Clock controller.
 pub struct Usb {
     pub usb_classes: Option<types::UsbClasses>,
 
-    pub contact_responder: Option<interchange::Responder<apdu_dispatch::interchanges::Contact>>,
-    pub ctaphid_responder: Option<interchange::Responder<ctaphid_dispatch::types::HidInterchange>>,
+    // pub contact_responder: Option<interchange::Responder<apdu_dispatch::interchanges::Contact>>,
+    // pub ctaphid_responder: Option<Responder<'pipe>>,
+
+    pub ctaphid_dispatch: types::CtaphidDispatch,
 }
 
 /// Initialized apdu + ctaphid dispatches
 pub struct Interfaces {
-    pub apdu_dispatch: types::ApduDispatch,
+    // pub apdu_dispatch: types::ApduDispatch,
     pub ctaphid_dispatch: types::CtaphidDispatch,
 }
 
@@ -84,8 +86,8 @@ pub struct All
     pub trussed: types::Trussed,
     pub filesystem: Filesystem,
     pub usb: Usb,
-    pub interfaces: Interfaces,
-    pub nfc: Nfc,
+    // pub interfaces: Interfaces,
+    // pub nfc: Nfc,
     pub basic: Basic,
     pub clock: Clock,
 }

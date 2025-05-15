@@ -12,6 +12,9 @@ use hal::drivers::{
     Pwm,
     Timer
 };
+use trussed::interrupt::InterruptFlag;
+use ref_swap::OptionRefSwap;
+use interchange::Channel;
 use hal::typestates::pin::state::Gpio;
 use hal::peripherals::{
     ctimer,
@@ -21,7 +24,6 @@ use hal::peripherals::pfr::Pfr;
 use hal::typestates::init_state::Unknown;
 use usb_device::device::{UsbDeviceBuilder, UsbVidPid};
 
-use interchange::Interchange;
 use trussed::platform::UserInterface;
 
 use board::traits::buttons;
@@ -229,40 +231,40 @@ impl Initializer {
         }
     }
 
-    fn try_enable_fm11nc08 <T: Ctimer<hal::Enabled>>(
-        &mut self,
-        clocks: &Clocks,
-        iocon: &mut hal::Iocon<hal::Enabled>,
-        gpio: &mut hal::Gpio<hal::Enabled>,
-        nfc_irq: hal::Pin<board::nfc::NfcIrqPin, Gpio<direction::Input>>,
-        delay_timer: &mut Timer<T>,
+    // fn try_enable_fm11nc08 <T: Ctimer<hal::Enabled>>(
+    //     &mut self,
+    //     clocks: &Clocks,
+    //     iocon: &mut hal::Iocon<hal::Enabled>,
+    //     gpio: &mut hal::Gpio<hal::Enabled>,
+    //     nfc_irq: hal::Pin<board::nfc::NfcIrqPin, Gpio<direction::Input>>,
+    //     delay_timer: &mut Timer<T>,
 
-        flexcomm0: hal::peripherals::flexcomm::Flexcomm0<Unknown>,
-        inputmux: hal::peripherals::inputmux::InputMux<Unknown>,
-        pint: hal::peripherals::pint::Pint<Unknown>,
-    ) -> Option<board::nfc::NfcChip> {
-        let token = clocks.support_flexcomm_token().unwrap();
-        let syscon = &mut self.syscon;
-        let spi = flexcomm0.enabled_as_spi(syscon, &token);
+    //     flexcomm0: hal::peripherals::flexcomm::Flexcomm0<Unknown>,
+    //     inputmux: hal::peripherals::inputmux::InputMux<Unknown>,
+    //     pint: hal::peripherals::pint::Pint<Unknown>,
+    // ) -> Option<board::nfc::NfcChip> {
+    //     let token = clocks.support_flexcomm_token().unwrap();
+    //     let syscon = &mut self.syscon;
+    //     let spi = flexcomm0.enabled_as_spi(syscon, &token);
 
-        // TODO save these so they can be released later
-        let mut mux = inputmux.enabled(syscon);
-        let mut pint = pint.enabled(syscon);
-        pint.enable_interrupt(&mut mux, &nfc_irq, hal::peripherals::pint::Slot::Slot0, hal::peripherals::pint::Mode::ActiveLow);
-        mux.disabled(syscon);
+    //     // TODO save these so they can be released later
+    //     let mut mux = inputmux.enabled(syscon);
+    //     let mut pint = pint.enabled(syscon);
+    //     pint.enable_interrupt(&mut mux, &nfc_irq, hal::peripherals::pint::Slot::Slot0, hal::peripherals::pint::Mode::ActiveLow);
+    //     mux.disabled(syscon);
 
-        let force_nfc_reconfig = cfg!(feature = "reconfigure-nfc");
+    //     let force_nfc_reconfig = cfg!(feature = "reconfigure-nfc");
 
-        board::nfc::try_setup(
-            spi,
-            gpio,
-            iocon,
-            nfc_irq,
-            delay_timer,
-            force_nfc_reconfig,
-        )
+    //     board::nfc::try_setup(
+    //         spi,
+    //         gpio,
+    //         iocon,
+    //         nfc_irq,
+    //         delay_timer,
+    //         force_nfc_reconfig,
+    //     )
 
-    }
+    // }
 
     pub fn initialize_clocks(&mut self,
         iocon: hal::Iocon<Unknown>,
@@ -406,55 +408,55 @@ impl Initializer {
         }
     }
 
-    pub fn initialize_nfc(&mut self,
-        clock_stage: &mut stages::Clock,
-        basic_stage: &mut stages::Basic,
-        flexcomm0: hal::peripherals::flexcomm::Flexcomm0<Unknown>,
-        mux: hal::peripherals::inputmux::InputMux<Unknown>,
-        pint: hal::peripherals::pint::Pint<Unknown>,
-    ) -> stages::Nfc {
+    // pub fn initialize_nfc(&mut self,
+    //     clock_stage: &mut stages::Clock,
+    //     basic_stage: &mut stages::Basic,
+    //     flexcomm0: hal::peripherals::flexcomm::Flexcomm0<Unknown>,
+    //     mux: hal::peripherals::inputmux::InputMux<Unknown>,
+    //     pint: hal::peripherals::pint::Pint<Unknown>,
+    // ) -> stages::Nfc {
 
-        let nfc_chip = if self.config.nfc_enabled {
-            self.try_enable_fm11nc08(
-                &clock_stage.clocks,
-                &mut clock_stage.iocon,
-                &mut clock_stage.gpio,
-                clock_stage.nfc_irq.take().unwrap(),
-                &mut basic_stage.delay_timer,
-                flexcomm0,
-                mux,
-                pint,
-            )
-        } else {
-            None
-        };
+    //     let nfc_chip = if self.config.nfc_enabled {
+    //         self.try_enable_fm11nc08(
+    //             &clock_stage.clocks,
+    //             &mut clock_stage.iocon,
+    //             &mut clock_stage.gpio,
+    //             clock_stage.nfc_irq.take().unwrap(),
+    //             &mut basic_stage.delay_timer,
+    //             flexcomm0,
+    //             mux,
+    //             pint,
+    //         )
+    //     } else {
+    //         None
+    //     };
 
-        let mut iso14443: Option<nfc_device::Iso14443<board::nfc::NfcChip>> = None;
+    //     let mut iso14443: Option<nfc_device::Iso14443<board::nfc::NfcChip>> = None;
 
-        let (contactless_requester, contactless_responder) = apdu_dispatch::interchanges::Contactless::claim()
-            .expect("could not setup iso14443 ApduInterchange");
+    //     let (contactless_requester, contactless_responder) = apdu_dispatch::interchanges::Contactless::claim()
+    //         .expect("could not setup iso14443 ApduInterchange");
 
-        if nfc_chip.is_some() {
-            iso14443 = Some(nfc_device::Iso14443::new(
-                nfc_chip.unwrap(), contactless_requester)
-            )
-        } else if self.is_nfc_passive {
-            info!("Shouldn't get passive signal when there's no chip!");
-        }
+    //     if nfc_chip.is_some() {
+    //         iso14443 = Some(nfc_device::Iso14443::new(
+    //             nfc_chip.unwrap(), contactless_requester)
+    //         )
+    //     } else if self.is_nfc_passive {
+    //         info!("Shouldn't get passive signal when there's no chip!");
+    //     }
 
-        if let Some(iso14443) = &mut iso14443 { iso14443.poll(); }
-        if self.is_nfc_passive {
-            // Give a small delay to charge up capacitors
-            basic_stage.delay_timer.start(5_000.microseconds()); nb::block!(basic_stage.delay_timer.wait()).ok();
-        }
-        if let Some(iso14443) = &mut iso14443 { iso14443.poll(); }
+    //     if let Some(iso14443) = &mut iso14443 { iso14443.poll(); }
+    //     if self.is_nfc_passive {
+    //         // Give a small delay to charge up capacitors
+    //         basic_stage.delay_timer.start(5_000.microseconds()); nb::block!(basic_stage.delay_timer.wait()).ok();
+    //     }
+    //     if let Some(iso14443) = &mut iso14443 { iso14443.poll(); }
 
-        stages::Nfc {
-            iso14443,
-            contactless_responder: Some(contactless_responder),
-        }
+    //     stages::Nfc {
+    //         iso14443,
+    //         contactless_responder: Some(contactless_responder),
+    //     }
 
-    }
+    // }
 
     pub fn initialize_usb(
         &mut self,
@@ -466,12 +468,13 @@ impl Initializer {
         let syscon = &mut self.syscon;
         let pmc = &mut self.pmc;
         let anactrl = &mut self.anactrl;
+        static CTAP_INTERRUPT: OptionRefSwap<'static, InterruptFlag> = OptionRefSwap::new(None);
+        // let (contact_requester, contact_responder) = apdu_dispatch::interchanges::Contact::claim()
+        //     .expect("could not setup ccid ApduInterchange");
 
-        let (contact_requester, contact_responder) = apdu_dispatch::interchanges::Contact::claim()
-            .expect("could not setup ccid ApduInterchange");
-
-        let (ctaphid_requester, ctaphid_responder) = ctaphid_dispatch::types::HidInterchange::claim()
-            .expect("could not setup HidInterchange");
+        use ctaphid_dispatch::types::Channel as CtapChannel;
+        static CTAP_CHANNEL: CtapChannel = Channel::new();
+        let (ctaphid_requester, ctaphid_responder) = CTAP_CHANNEL.split().unwrap();
 
         info!("usb class start {} ms", basic_stage.perf_timer.elapsed().0/1000);
 
@@ -512,9 +515,9 @@ impl Initializer {
             // our USB classes (must be allocated in order that they're passed in `.poll(...)` later!)
             //
             // NB: Card issuer's data can be at most 13 bytes (otherwise the constructor panics).
-            let ccid = usbd_ccid::Ccid::new(usb_bus, contact_requester, Some(b"ATLKey"));
+            // let ccid = usbd_ccid::Ccid::new(usb_bus, contact_requester, Some(b"ATLKey"));
             let current_time = basic_stage.perf_timer.elapsed().0/1000;
-            let mut ctaphid = usbd_ctaphid::CtapHid::new(usb_bus, ctaphid_requester, current_time)
+            let mut ctaphid = usbd_ctaphid::CtapHid::with_interrupt(usb_bus, ctaphid_requester, Some(&CTAP_INTERRUPT), current_time)
                 .implements_ctap1()
                 .implements_ctap2()
                 .implements_wink();
@@ -548,36 +551,42 @@ impl Initializer {
                 .composite_with_iads()
                 .build();
 
-            usb_classes = Some(types::UsbClasses::new(usbd, ccid, ctaphid));//, /*keyboard,*/ serial));
+            usb_classes = Some(types::UsbClasses::new(usbd, ctaphid));//, /*keyboard,*/ serial));
 
         }
 
         // Cancel any possible outstanding use in delay timing
         basic_stage.delay_timer.cancel().ok();
 
+        let ctaphid_dispatch = types::CtaphidDispatch::with_interrupt(
+            ctaphid_responder,
+            Some(&CTAP_INTERRUPT),
+        );
+
         stages::Usb {
             usb_classes,
-            contact_responder: Some(contact_responder),
-            ctaphid_responder: Some(ctaphid_responder),
-        }
-    }
-
-    pub fn initialize_interfaces(&mut self, nfc_stage: &mut stages::Nfc, usb_stage: &mut stages::Usb) -> stages::Interfaces {
-
-        info_now!("making interfaces");
-        let apdu_dispatch = types::ApduDispatch::new(
-            usb_stage.contact_responder.take().unwrap(),
-            nfc_stage.contactless_responder.take().unwrap(),
-        );
-        let ctaphid_dispatch = types::CtaphidDispatch::new(
-            usb_stage.ctaphid_responder.take().unwrap()
-        );
-
-        stages::Interfaces {
-            apdu_dispatch,
+            // contact_responder: Some(contact_responder),
             ctaphid_dispatch,
         }
     }
+
+    // pub fn initialize_interfaces(&mut self, usb_stage: &mut stages::Usb) -> stages::Interfaces {
+
+    //     info_now!("making interfaces");
+    //     // let apdu_dispatch = types::ApduDispatch::new(
+    //     //     usb_stage.contact_responder.take().unwrap(),
+    //     //     nfc_stage.contactless_responder.take().unwrap(),
+    //     // );
+    //     let ctaphid_dispatch = types::CtaphidDispatch::with_interrupt(
+    //         usb_stage.ctaphid_responder.take().unwrap(),
+    //         Some(&usb_stage.ctap_interrupt),
+    //     );
+
+    //     stages::Interfaces {
+    //         // apdu_dispatch,
+    //         ctaphid_dispatch,
+    //     }
+    // }
 
     pub fn initialize_flash(
         &mut self,
@@ -606,7 +615,7 @@ impl Initializer {
     pub fn initialize_filesystem(&mut self,
         clock_stage: &mut stages::Clock,
         basic_stage: &mut stages::Basic,
-        nfc_stage: &mut stages::Nfc,
+        // nfc_stage: &mut stages::Nfc,
         flash_stage: &mut stages::Flash,
     ) -> stages::Filesystem {
         use littlefs2::fs::{Allocation, Filesystem};
@@ -659,7 +668,7 @@ impl Initializer {
 
         let store = types::Store::claim().unwrap();
 
-        if let Some(iso14443) = &mut nfc_stage.iso14443 { iso14443.poll(); }
+        // if let Some(iso14443) = &mut nfc_stage.iso14443 { iso14443.poll(); }
 
         unsafe {
 
@@ -713,7 +722,7 @@ impl Initializer {
                 .reconfigure(clock_stage.clocks, pmc, syscon) };
         }
 
-        if let Some(iso14443) = &mut nfc_stage.iso14443 { iso14443.poll(); }
+        // if let Some(iso14443) = &mut nfc_stage.iso14443 { iso14443.poll(); }
 
         // Cancel any possible outstanding use in delay timer
         basic_stage.delay_timer.cancel().ok();
@@ -731,6 +740,7 @@ impl Initializer {
         flash_stage: &mut stages::Flash,
         filesystem_stage: &mut stages::Filesystem,
         rtc: hal::peripherals::rtc::Rtc<Unknown>,
+        // usb_stage: &mut stages::Usb,
     ) -> types::Trussed {
         let syscon = &mut self.syscon;
         let pmc = &mut self.pmc;
@@ -753,7 +763,7 @@ impl Initializer {
         let rng = flash_stage.rng.take().unwrap();
         let store = filesystem_stage.store;
         let board = types::Board::new(rng, store, atlkey_interface);
-        let trussed = trussed::service::Service::new(board);
+        let trussed = trussed::service::Service::new(board, None);
 
         trussed
     }
@@ -772,9 +782,9 @@ impl Initializer {
         perf_timer: ctimer::Ctimer4,
         pfr: Pfr<Unknown>,
 
-        flexcomm0: hal::peripherals::flexcomm::Flexcomm0<Unknown>,
-        mux: hal::peripherals::inputmux::InputMux<Unknown>,
-        pint: hal::peripherals::pint::Pint<Unknown>,
+        _flexcomm0: hal::peripherals::flexcomm::Flexcomm0<Unknown>,
+        _mux: hal::peripherals::inputmux::InputMux<Unknown>,
+        _pint: hal::peripherals::pint::Pint<Unknown>,
 
         usbhs: hal::peripherals::usbhs::Usbhs<Unknown>,
         usbfs: hal::peripherals::usbfs::Usbfs<Unknown>,
@@ -798,21 +808,21 @@ impl Initializer {
             perf_timer,
             pfr,
         );
-        let mut nfc_stage = self.initialize_nfc(
-            &mut clock_stage,
-            &mut basic_stage,
-            flexcomm0,
-            mux,
-            pint
-        );
+        // let mut nfc_stage = self.initialize_nfc(
+        //     &mut clock_stage,
+        //     &mut basic_stage,
+        //     flexcomm0,
+        //     mux,
+        //     pint
+        // );
 
-        let mut usb_stage = self.initialize_usb(
+        let usb_stage = self.initialize_usb(
             &mut clock_stage,
             &mut basic_stage,
             usbhs,
             usbfs
         );
-        let interfaces_stage = self.initialize_interfaces(&mut nfc_stage, &mut usb_stage);
+        // let interfaces_stage = self.initialize_interfaces(&mut usb_stage);
         let mut flash_stage = self.initialize_flash(
             rng,
             prince,
@@ -821,7 +831,7 @@ impl Initializer {
         let mut filesystem_stage = self.initialize_filesystem(
             &mut clock_stage,
             &mut basic_stage,
-            &mut nfc_stage,
+            // &mut nfc_stage,
             &mut flash_stage,
         );
 
@@ -831,14 +841,15 @@ impl Initializer {
             &mut flash_stage,
             &mut filesystem_stage,
             rtc,
+            // &mut usb_stage
         );
 
         stages::All {
             trussed: trussed,
             filesystem: filesystem_stage,
             usb: usb_stage,
-            interfaces: interfaces_stage,
-            nfc: nfc_stage,
+            // interfaces: interfaces_stage,
+            // nfc: nfc_stage,
             basic: basic_stage,
             clock: clock_stage,
         }

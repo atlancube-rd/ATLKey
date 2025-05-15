@@ -53,7 +53,7 @@ pub fn init_board(
     core_peripherals: rtic::Peripherals,
 ) -> (
     // types::Authenticator,
-    types::ApduDispatch,
+    // types::ApduDispatch,
     types::CtaphidDispatch,
     types::Trussed,
 
@@ -146,14 +146,15 @@ pub fn init_board(
     );
 
     (
-        everything.interfaces.apdu_dispatch,
-        everything.interfaces.ctaphid_dispatch,
+        // everything.interfaces.apdu_dispatch,
+        everything.usb.ctaphid_dispatch,
         everything.trussed,
 
         apps,
 
         everything.usb.usb_classes,
-        everything.nfc.iso14443,
+        // everything.nfc.iso14443,
+        None,
 
         everything.basic.perf_timer,
         clock_controller,

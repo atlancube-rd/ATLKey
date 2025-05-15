@@ -5,14 +5,16 @@ authors = ["Conor Patrick <conor@solokeys.com>", "Hank Lee <kehan.lee@atlancube.
 edition = "2021"
 
 [dependencies]
-admin-app = "0.1"
+admin-app = { path = "../../../admin-app" }
 delog = "0.1"
 fm11nc08 = {path = "../../../components/fm11nc08"}
-lpc55-hal = { version = "0.3", features = ["littlefs", "rtic-peripherals"] }
+lpc55-hal = { version = "0.3.0", features = ["littlefs", "rtic-peripherals"] }
 lpc55-rtic = "0.5.7"
 micromath = "2"
 nb = "1"
-trussed = "0.1"
+trussed = { path = "../../../trussed" }
+# trussed = { git = "https://github.com/trussed-dev/trussed", rev = "269e71ab7154ee766a146473d35329b7258e22b0" }
+ref-swap = "0.1.2"
 
 [features]
 lpcxpresso55 = []

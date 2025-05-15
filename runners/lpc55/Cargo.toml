@@ -17,23 +17,26 @@ lpc55-rtic = "0.5.7"
 cortex-m-semihosting = {version = "0.3.5", optional = true }
 delog = "0.1.1"
 heapless = "0.7"
-interchange = "0.2.2"
 nb = "1"
 rtt-target = { version = "0.3", optional = true, features = ["cortex-m"] }
 usb-device = "0.2.3"
 # usbd-hid = { version = "0.4.5", optional = true }
 usbd-serial = "0.1.0"
 
-admin-app = { version = "0.1", optional = true }
+admin-app = { git = "https://github.com/atlancube-rd/admin-app", optional = true }
 apdu-dispatch = "0.1.1"
-ctaphid-dispatch = "0.1.1"
+# ctaphid-dispatch = "0.1.1"
+ctaphid-dispatch = { path = "../../ctaphid-dispatch" }
 # ctap-types = { path = "../../ctap-types" }
-# fido-authenticator = { path = "../../fido-authenticator", features = ["dispatch"], optional = true }
+fido-authenticator = { path = "../../fido-authenticator", features = ["dispatch"], optional = true }
 ctap-types = { git = "https://github.com/atlancube-rd/ctap-types", branch = "0.1" }
-fido-authenticator = { git = "https://github.com/atlancube-rd/fido-authenticator", features = ["dispatch"], optional = true }
+# fido-authenticator = { git = "https://github.com/atlancube-rd/fido-authenticator", features = ["dispatch"], optional = true }
 oath-authenticator = { version = "0.1", features = ["apdu-dispatch"], optional = true }
 piv-authenticator = { git = "https://github.com/solokeys/piv-authenticator", features = ["apdu-dispatch"], optional = true }
 trussed = "0.1"
+# trussed = { path = "../../trussed" }
+ref-swap = "0.1.2"
+interchange = "0.3.0"
 
 # board
 board = { path = "board" }
@@ -45,7 +48,7 @@ provisioner-app = { path = "../../components/provisioner-app", optional = true }
 fm11nc08 = {path = "../../components/fm11nc08"}
 nfc-device = {path = "../../components/nfc-device"}
 usbd-ccid = "0.1.0"
-usbd-ctaphid = "0.1.0"
+usbd-ctaphid = { path = "../../usbd-ctaphid" }
 
 
 # panic
@@ -58,7 +61,7 @@ littlefs2 = { version = "0.3.2", features = ["c-stubs"] }
 [features]
 # ndef-app is an annoyance on some mobile platforms
 default = ["admin-app", "fido-authenticator", "ndef-app", "oath-authenticator", "trussed/clients-4"]
-default-release = ["admin-app", "no-encrypted-storage", "fido-authenticator", "log-rtt", "ndef-app", "oath-authenticator", "trussed/clients-4"]
+default-release = ["admin-app", "no-encrypted-storage", "fido-authenticator", "ndef-app", "oath-authenticator", "log-rtt", "trussed/clients-4"]
 
 # develop = ["no-encrypted-storage", "no-buttons", "no-reset-time-window"]
 # develop = ["no-encrypted-storage", "no-reset-time-window"]
@@ -124,3 +127,9 @@ opt-level = 2
 # TODO: see which if any settings are best for p256-cortex-m4
 # [profile.release.package.nisty]
 # opt-level = 2
+
+[patch.crates-io]
+# trussed = { path = "../../trussed" }
+# ctaphid-dispatch = { path = "../../ctaphid-dispatch" }
+trussed = { git = "https://github.com/atlancube-rd/trussed", branch = "0.1" }
+ctaphid-dispatch = { git = "https://github.com/atlancube-rd/ctaphid-dispatch", branch = "0.1" }

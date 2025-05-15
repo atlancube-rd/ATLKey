@@ -15,7 +15,7 @@ use hal::time::{DurationExtensions, Microseconds};
 const REFRESH_MILLISECS: i32 = 50;
 
 const USB_INTERRUPT: board::hal::raw::Interrupt = board::hal::raw::Interrupt::USB1;
-const NFC_INTERRUPT: board::hal::raw::Interrupt = board::hal::raw::Interrupt::PIN_INT0;
+// const NFC_INTERRUPT: board::hal::raw::Interrupt = board::hal::raw::Interrupt::PIN_INT0;
 
 #[macro_use]
 extern crate delog;
@@ -35,7 +35,7 @@ const APP: () = {
 
     struct Resources {
         /// Dispatches APDUs from contact+contactless interface to apps.
-        apdu_dispatch: runner::types::ApduDispatch,
+        // apdu_dispatch: runner::types::ApduDispatch,
 
         /// Dispatches CTAPHID messages to apps.
         ctaphid_dispatch: runner::types::CtaphidDispatch,
@@ -85,7 +85,7 @@ const APP: () = {
     fn init(c: init::Context) -> init::LateResources {
 
         let (
-            apdu_dispatch,
+            // apdu_dispatch,
             ctaphid_dispatch,
             trussed,
 
@@ -107,7 +107,7 @@ const APP: () = {
         }
 
         init::LateResources {
-            apdu_dispatch,
+            // apdu_dispatch,
             ctaphid_dispatch,
             trussed,
 
@@ -123,10 +123,10 @@ const APP: () = {
         }
     }
 
-    #[idle(resources = [apdu_dispatch, ctaphid_dispatch, apps, perf_timer, usb_classes], schedule = [ccid_wait_extension, ctaphid_keepalive])]
+    #[idle(resources = [ctaphid_dispatch, apps, perf_timer, usb_classes], schedule = [ctaphid_keepalive])]
     fn idle(c: idle::Context) -> ! {
         let idle::Resources {
-            apdu_dispatch,
+            // apdu_dispatch,
             ctaphid_dispatch,
             apps,
             mut perf_timer,
@@ -150,16 +150,16 @@ const APP: () = {
                 runner::Delogger::flush();
             }
 
-            match apps.apdu_dispatch(|apps| apdu_dispatch.poll(apps)) {
+            // match apps.apdu_dispatch(|apps| apdu_dispatch.poll(apps)) {
 
-                Some(apdu_dispatch::dispatch::Interface::Contact) => {
-                    rtic::pend(USB_INTERRUPT);
-                }
-                Some(apdu_dispatch::dispatch::Interface::Contactless) => {
-                    rtic::pend(NFC_INTERRUPT);
-                }
-                _ => {}
-            }
+            //     Some(apdu_dispatch::dispatch::Interface::Contact) => {
+            //         rtic::pend(USB_INTERRUPT);
+            //     }
+            //     Some(apdu_dispatch::dispatch::Interface::Contactless) => {
+            //         rtic::pend(NFC_INTERRUPT);
+            //     }
+            //     _ => {}
+            // }
 
             if apps.ctaphid_dispatch(|apps| ctaphid_dispatch.poll(apps)) {
                 rtic::pend(USB_INTERRUPT);
@@ -173,15 +173,15 @@ const APP: () = {
                     usb_classes.ctaphid.check_timeout(time/1000);
                     usb_classes.poll();
 
-                    match usb_classes.ccid.did_start_processing() {
-                        usbd_ccid::types::Status::ReceivedData(milliseconds) => {
-                            schedule.ccid_wait_extension(
-                                // Instant::now() + (CLOCK_FREQ/1_000 * milliseconds.0).cycles()
-                                <board::Monotonic as rtic::Monotonic>::now() + milliseconds.0 as i32
-                            ).ok();
-                        }
-                        _ => {}
-                    }
+                    // match usb_classes.ccid.did_start_processing() {
+                    //     usbd_ccid::types::Status::ReceivedData(milliseconds) => {
+                    //         schedule.ccid_wait_extension(
+                    //             // Instant::now() + (CLOCK_FREQ/1_000 * milliseconds.0).cycles()
+                    //             <board::Monotonic as rtic::Monotonic>::now() + milliseconds.0 as i32
+                    //         ).ok();
+                    //     }
+                    //     _ => {}
+                    // }
 
                     match usb_classes.ctaphid.did_start_processing() {
                         usbd_ctaphid::types::Status::ReceivedData(milliseconds) => {
@@ -205,7 +205,7 @@ const APP: () = {
     }
 
     /// Manages all traffic on the USB bus.
-    #[task(binds = USB1, resources = [usb_classes], schedule = [ccid_wait_extension, ctaphid_keepalive], priority=6)]
+    #[task(binds = USB1, resources = [usb_classes], schedule = [ctaphid_keepalive], priority=6)]
     fn usb(c: usb::Context) {
         // let remaining = msp() - 0x2000_0000;
         // if remaining < 100_000 {
@@ -221,18 +221,18 @@ const APP: () = {
         // }
         usb_classes.poll();
 
-        match usb_classes.ccid.did_start_processing() {
-            usbd_ccid::types::Status::ReceivedData(milliseconds) => {
-                // if remaining < 60_000 {
-                //     debug_now!("scheduling CCID wait extension");
-                // }
-                c.schedule.ccid_wait_extension(
-                    // Instant::now() + (CLOCK_FREQ/1_000 * milliseconds.0).cycles()
-                    <board::Monotonic as rtic::Monotonic>::now() + milliseconds.0 as i32
-                ).ok();
-            }
-            _ => {}
-        }
+        // match usb_classes.ccid.did_start_processing() {
+        //     usbd_ccid::types::Status::ReceivedData(milliseconds) => {
+        //         // if remaining < 60_000 {
+        //         //     debug_now!("scheduling CCID wait extension");
+        //         // }
+        //         c.schedule.ccid_wait_extension(
+        //             // Instant::now() + (CLOCK_FREQ/1_000 * milliseconds.0).cycles()
+        //             <board::Monotonic as rtic::Monotonic>::now() + milliseconds.0 as i32
+        //         ).ok();
+        //     }
+        //     _ => {}
+        // }
         match usb_classes.ctaphid.did_start_processing() {
             usbd_ctaphid::types::Status::ReceivedData(milliseconds) => {
                 // if remaining < 60_000 {
@@ -280,21 +280,21 @@ const APP: () = {
     /// Whenever we start waiting for an application to reply to CCID, this must be scheduled.
     /// In case the application takes too long, this will periodically send wait extensions
     /// until the application replied.
-    #[task(resources = [usb_classes], schedule = [ccid_wait_extension], priority = 6)]
-    fn ccid_wait_extension(c: ccid_wait_extension::Context) {
-        debug_now!("CCID WAIT EXTENSION");
-        debug_now!("remaining stack size: {} bytes", msp() - 0x2000_0000);
-        let status = c.resources.usb_classes.as_mut().unwrap().ccid.send_wait_extension();
-        match status {
-            usbd_ccid::types::Status::ReceivedData(milliseconds) => {
-                c.schedule.ccid_wait_extension(
-                    // Instant::now() + (CLOCK_FREQ/1_000 * milliseconds.0).cycles()
-                    <board::Monotonic as rtic::Monotonic>::now() + milliseconds.0 as i32
-                ).ok();
-            }
-            _ => {}
-        }
-    }
+    // #[task(resources = [usb_classes], schedule = [ccid_wait_extension], priority = 6)]
+    // fn ccid_wait_extension(c: ccid_wait_extension::Context) {
+    //     debug_now!("CCID WAIT EXTENSION");
+    //     debug_now!("remaining stack size: {} bytes", msp() - 0x2000_0000);
+    //     let status = c.resources.usb_classes.as_mut().unwrap().ccid.send_wait_extension();
+    //     match status {
+    //         usbd_ccid::types::Status::ReceivedData(milliseconds) => {
+    //             c.schedule.ccid_wait_extension(
+    //                 // Instant::now() + (CLOCK_FREQ/1_000 * milliseconds.0).cycles()
+    //                 <board::Monotonic as rtic::Monotonic>::now() + milliseconds.0 as i32
+    //             ).ok();
+    //         }
+    //         _ => {}
+    //     }
+    // }
 
     /// Same as with CCID, but sending ctaphid keepalive statuses.
     #[task(resources = [usb_classes], schedule = [ctaphid_keepalive], priority = 6)]
