@@ -74,6 +74,8 @@ pub struct Initializer {
     config: Config,
 }
 
+static CTAP_INTERRUPT: OptionRefSwap<'static, InterruptFlag> = OptionRefSwap::new(None);
+
 // fn get_serial_number() -> &'static str {
 //     static mut SERIAL_NUMBER: heapless::String<heapless::consts::U36> = heapless::String(heapless::i::String::new());
 //     use core::fmt::Write;
@@ -468,7 +470,7 @@ impl Initializer {
         let syscon = &mut self.syscon;
         let pmc = &mut self.pmc;
         let anactrl = &mut self.anactrl;
-        static CTAP_INTERRUPT: OptionRefSwap<'static, InterruptFlag> = OptionRefSwap::new(None);
+        
         // let (contact_requester, contact_responder) = apdu_dispatch::interchanges::Contact::claim()
         //     .expect("could not setup ccid ApduInterchange");
 
@@ -763,7 +765,7 @@ impl Initializer {
         let rng = flash_stage.rng.take().unwrap();
         let store = filesystem_stage.store;
         let board = types::Board::new(rng, store, atlkey_interface);
-        let trussed = trussed::service::Service::new(board, None);
+        let trussed = trussed::service::Service::new(board, Some(&CTAP_INTERRUPT));
 
         trussed
     }

@@ -74,7 +74,7 @@ impl trussed::client::Syscall for Syscall {
     }
 }
 
-pub type Trussed = trussed::Service<Board>;
+pub type Trussed = trussed::Service<'static, Board>;
 pub type TrussedClient = trussed::ClientImplementation<Syscall>;
 
 pub type Iso14443 = nfc_device::Iso14443<board::nfc::NfcChip>;
